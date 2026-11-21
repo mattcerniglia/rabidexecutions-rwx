@@ -29,7 +29,10 @@ def _patch_pool():
             self._sync_init = True
             init(*getattr(self, "_initargs", ()))
         try:
-            f.set_result(fn(*a, **k))
+            import pickle
+            fn, a, k = pickle.loads(pickle.dumps((fn, a, k)))
+            res = fn(*a, **k)
+            f.set_result(pickle.loads(pickle.dumps(res)))
         except BaseException as e:
             f.set_exception(e)
         return f

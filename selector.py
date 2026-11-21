@@ -88,6 +88,30 @@ class Mapper:
             self.cache[key] = out
         return self.cache[key]
 
+    def is_class_level(self, f, line):
+        """True when `line` is module level or directly in a class body (not inside a def)."""
+        best = None
+        for a, b, cls, _fb in self.m["spans"].get(f, ()):
+            if a <= line <= b and (best is None or b - a < best[1] - best[0]):
+                best = (a, b, cls)
+        return best is None or best[2] == 1
+
+    def dialect_union(self, f):
+        """Import-time attributes of a dialect file reach tests only through data flow:
+        take every test that runs any line of that dialect's dialect/parser/generator/typing files."""
+        m = re.match(r"sqlglot/(?:dialects|parsers|generators|typing)/([^/]+)\.py$", f)
+        if not m or m.group(1) in ("dialect", "__init__"):
+            return ()
+        key = ("dialect", m.group(1))
+        if key not in self.cache:
+            out = set()
+            for d in ("dialects", "parsers", "generators", "typing"):
+                g = f"sqlglot/{d}/{m.group(1)}.py"
+                for i in self.m["lines"].get(g, {}).values():
+                    out.update(self.sets[i])
+            self.cache[key] = out
+        return self.cache[key]
+
     def select_py(self, f, removed, added):
         out = set()
         imp = set(self.m["import"].get(f, ()))
@@ -98,6 +122,8 @@ class Mapper:
                 out.update(ts)
             elif n in imp or L in imp:
                 out.update(self.func_union(f, n))  # import-only line: widen
+            if self.is_class_level(f, n):
+                out.update(self.dialect_union(f))
         for L in added:
             for k in (L - 1, L):
                 out.update(self.tests_at(f, self.norm(f, k)))
