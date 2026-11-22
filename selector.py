@@ -10,6 +10,12 @@ from pathlib import Path
 DATA = Path(os.environ.get("BR_DATA", "/data"))
 MAP = Path(__file__).with_name("map.json")
 SRC = Path(__file__).with_name("src")
+INF = Path(__file__).with_name("infect_map.json")
+ALTS = {
+    "==": ["!=", "is"], "!=": ["==", "is not"], "<": ["<=", ">", ">="], "<=": ["<", ">", ">="],
+    ">": [">=", "<", "<="], ">=": [">", "<", "<="], "is": ["is not", "=="], "is not": ["is", "!="],
+    "in": ["not in"], "not in": ["in"],
+}
 WORKER_COST = 2000
 HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
@@ -43,6 +49,19 @@ def parse_patch(text):
         elif line.startswith(" "):
             old += 1
     return files
+
+
+class _LazySets:
+    """Decode map test-index lists into runtime test numbers on first use."""
+
+    def __init__(self, raw, num):
+        self.raw, self.num, self.done = raw, num, {}
+
+    def __getitem__(self, i):
+        got = self.done.get(i)
+        if got is None:
+            got = self.done[i] = [self.num[j] for j in self.raw[i] if self.num[j] is not None]
+        return got
 
 
 def split_hunks(text):
@@ -140,13 +159,53 @@ def same_bytecode(old_src, new_src):
     return _same_code(comp(old_src), comp(new_src))
 
 
+def _ast_diffs(a, b, out):
+    """Collect structural differences between two ASTs (stops after two)."""
+    import ast
+
+    if len(out) > 1:
+        return
+    if type(a) is not type(b):
+        out.append(("x",))
+    elif isinstance(a, ast.AST):
+        if (
+            isinstance(a, ast.Compare)
+            and len(a.ops) == 1
+            and len(b.ops) == 1
+            and type(a.ops[0]) is not type(b.ops[0])
+            and ast.dump(a.left) == ast.dump(b.left)
+            and ast.dump(a.comparators[0]) == ast.dump(b.comparators[0])
+        ):
+            out.append(("cmp", a, b))
+            return
+        for f in a._fields:
+            _ast_diffs(getattr(a, f), getattr(b, f), out)
+    elif isinstance(a, list):
+        if len(a) != len(b):
+            out.append(("x",))
+            return
+        for x, y in zip(a, b):
+            _ast_diffs(x, y, out)
+    elif a != b:
+        out.append(("str",) if isinstance(a, str) and isinstance(b, str) else ("x",))
+
+
+def _op_name(node):
+    import ast
+
+    return {ast.Eq: "==", ast.NotEq: "!=", ast.Lt: "<", ast.LtE: "<=", ast.Gt: ">", ast.GtE: ">=",
+            ast.Is: "is", ast.IsNot: "is not", ast.In: "in", ast.NotIn: "not in"}.get(type(node))
+
+
 class Mapper:
     def __init__(self, tests):
         m = json.loads(MAP.read_text())
         self.m = m
         by_id = {t["id"]: t["number"] for t in tests}
         num = [by_id.get(i) for i in m["ids"]]
-        self.sets = [[num[i] for i in s if num[i] is not None] for s in m["sets"]]
+        self.num = num
+        self._inf = None
+        self.sets = _LazySets(m["sets"], num)
         self.fixtures = {
             k: [num[i] for i in v if num[i] is not None] for k, v in m["fixtures"].items()
         }
@@ -155,6 +214,10 @@ class Mapper:
             self.by_file.setdefault(t["file"], []).append(t["number"])
         self.all = [t["number"] for t in tests]
         self.cache = {}
+        # runs `import sqlglot` in a subprocess, so coverage can't see what it touches
+        self.lazy = [
+            t["number"] for t in tests if t["id"].endswith("TestDialect::test_lazy_load")
+        ]
 
     def tests_at(self, f, line):
         i = self.m["lines"][f].get(str(line))
@@ -220,28 +283,80 @@ class Mapper:
                 out.update(self.func_union(f, n))  # import-only line: widen
             if self.is_class_level(f, n):
                 out.update(self.dialect_union(f))
+                out.update(self.lazy)
         for L in added:
+            if self.is_class_level(f, max(L - 1, 1)):
+                out.update(self.lazy)
             for k in (L - 1, L):
                 out.update(self.tests_at(f, self.norm(f, k)))
             out.update(self.func_union(f, max(L - 1, 1)))
         return out
 
-    def equivalent(self, path, hunks):
-        """True only when the patched file compiles to identical bytecode (docstrings ignored)."""
+    def inf(self):
+        if self._inf is None:
+            try:
+                d = json.loads(INF.read_text())
+                d["sets"] = _LazySets(d["sets"], self.num)
+                d["unprof"] = {self.num[i] for i in d.get("unprofiled", ()) if self.num[i] is not None}
+                d["importset"] = set(d["import"])
+                self._inf = d
+            except Exception:
+                self._inf = False
+        return self._inf
+
+    def analyze(self, path, hunks):
+        """-> set of tests when the patch is provably harmless or a profiled single comparison
+        swap (possibly empty); None when the normal coverage rules must decide."""
+        import ast
+
         try:
             old = (SRC / path).read_text()
             new = "\n".join(apply_hunks(old.split("\n"), hunks))
-            return same_bytecode(old, new)
+            out = []
+            _ast_diffs(ast.parse(old), ast.parse(new), out)
         except Exception:
-            return False
+            return None
+        if not out:
+            return set()  # identical AST: comments / whitespace / formatting only
+        if all(d[0] == "str" for d in out):
+            try:
+                return set() if same_bytecode(old, new) else None  # docstring-only edits
+            except Exception:
+                return None
+        if len(out) != 1 or out[0][0] != "cmp":
+            return None
+        return self.infect_tests(path, out[0][1], out[0][2])
+
+    def infect_tests(self, path, a, b):
+        inf = self.inf()
+        if not inf:
+            return None
+        try:
+            key = f"{a.lineno}:{a.col_offset}"
+            old_op, new_op = _op_name(a.ops[0]), _op_name(b.ops[0])
+            known = inf["known"].get(path, {}).get(key)
+            if known is None or known != old_op or new_op not in ALTS.get(old_op, ()):
+                return None
+            if f"{path}:{key}" in inf["importset"]:
+                return None
+            site = inf["sites"].get(path, {}).get(key)
+            tests = set(inf["sets"][site["alts"][new_op]]) if site and new_op in site["alts"] else set()
+            cov = self.tests_at(path, self.norm(path, a.lineno))
+            tests |= {t for t in cov if t in inf["unprof"]}
+            return tests
+        except Exception:
+            return None
 
     def select(self, files, hunks=None):
         """-> set of test numbers, or None meaning 'run everything'."""
         out = set()
         for path, (removed, added) in files.items():
             if path in self.m["lines"]:
-                if hunks and path in hunks and self.equivalent(path, hunks[path]):
-                    continue
+                if hunks and path in hunks:
+                    got = self.analyze(path, hunks[path])
+                    if got is not None:
+                        out.update(got)
+                        continue
                 out.update(self.select_py(path, removed, added))
             elif path.startswith("tests/fixtures/"):
                 out.update(self.fixtures.get(path, ()))
