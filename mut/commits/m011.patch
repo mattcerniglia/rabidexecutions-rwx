@@ -1,0 +1,12 @@
+diff --git a/sqlglot/optimizer/simplify.py b/sqlglot/optimizer/simplify.py
+--- a/sqlglot/optimizer/simplify.py
++++ b/sqlglot/optimizer/simplify.py
+@@ -1507,7 +1507,7 @@
+                     cond = cond.replace(this.pop().eq(cond))
+ 
+                 if always_true(cond):
+-                    if case.index == 0:
++                    if case.index != 0:
+                         return exp.paren(case.args["true"], copy=False)
+ 
+                     expression.set("default", case.args["true"])

@@ -1,0 +1,12 @@
+diff --git a/sqlglot/parsers/hive.py b/sqlglot/parsers/hive.py
+--- a/sqlglot/parsers/hive.py
++++ b/sqlglot/parsers/hive.py
+@@ -165,7 +165,7 @@
+             precision, scale = len(digits), -int(exponent)
+ 
+             if self.NORMALIZE_DECIMAL_LITERALS:
+-                if not any(digits):
++                if not not any(digits):
+                     precision, scale = 1, 0
+                 else:
+                     while scale > 0 and digits[precision - 1] == 0:

@@ -1,0 +1,12 @@
+diff --git a/sqlglot/diff.py b/sqlglot/diff.py
+--- a/sqlglot/diff.py
++++ b/sqlglot/diff.py
+@@ -470,7 +470,7 @@
+                 lcs_result[i][j] = (
+                     lcs_result[i - 1][j]
+                     if len(lcs_result[i - 1][j]) > len(lcs_result[i][j - 1])  # type: ignore
+-                    else lcs_result[i][j - 1]
++                    else lcs_result[i][j + 1]
+                 )
+ 
+     return lcs_result[len_a][len_b]  # type: ignore

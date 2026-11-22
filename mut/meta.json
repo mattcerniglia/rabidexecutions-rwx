@@ -1,0 +1,242 @@
+{
+ "m000": {
+  "file": "sqlglot/generators/snowflake.py",
+  "line": 632,
+  "old": "            return self.func(this, *expression.expressions, normalize=False)",
+  "new": "            return self.func(this, *expression.expressions, normalize=True)"
+ },
+ "m001": {
+  "file": "sqlglot/optimizer/merge_subqueries.py",
+  "line": 780,
+  "old": "        if exp.column_table_names(where.this) <= sources:",
+  "new": "        if not exp.column_table_names(where.this) <= sources:"
+ },
+ "m002": {
+  "file": "sqlglot/jsonpath.py",
+  "line": 141,
+  "old": "                if isinstance(literal, str) or literal is not False:",
+  "new": "                if not isinstance(literal, str) or literal is not False:"
+ },
+ "m003": {
+  "file": "sqlglot/parser.py",
+  "line": 9487,
+  "old": "        if not isinstance(expression, exp.ColumnDef):",
+  "new": "        if not not isinstance(expression, exp.ColumnDef):"
+ },
+ "m004": {
+  "file": "sqlglot/diff.py",
+  "line": 226,
+  "old": "                if identical_nodes:",
+  "new": "                if not identical_nodes:"
+ },
+ "m005": {
+  "file": "sqlglot/parsers/redshift.py",
+  "line": 95,
+  "old": "        parse_bracket: bool = False,",
+  "new": "        parse_bracket: bool = True,"
+ },
+ "m006": {
+  "file": "sqlglot/parser.py",
+  "line": 7538,
+  "old": "            self.SUPPORTS_DIGIT_PREFIXED_FIELD_NAMES and self._prev.token_type == TokenType.DOT",
+  "new": "            self.SUPPORTS_DIGIT_PREFIXED_FIELD_NAMES or self._prev.token_type == TokenType.DOT"
+ },
+ "m007": {
+  "file": "sqlglot/tokenizer_core.py",
+  "line": 1035,
+  "old": "                and self._current + 1 < self.size",
+  "new": "                and self._current + 1 > self.size"
+ },
+ "m008": {
+  "file": "sqlglot/optimizer/pushdown_projections.py",
+  "line": 329,
+  "old": "            if not isinstance(source, Scope):",
+  "new": "            if not not isinstance(source, Scope):"
+ },
+ "m009": {
+  "file": "sqlglot/optimizer/optimize_joins.py",
+  "line": 42,
+  "old": "                if dep.kind == \"ANTI\":",
+  "new": "                if not dep.kind == \"ANTI\":"
+ },
+ "m010": {
+  "file": "sqlglot/parser.py",
+  "line": 2059,
+  "old": "        self._chunk_index: i64 = 0",
+  "new": "        self._chunk_index: i64 = 1"
+ },
+ "m011": {
+  "file": "sqlglot/optimizer/simplify.py",
+  "line": 1510,
+  "old": "                    if case.index == 0:",
+  "new": "                    if case.index != 0:"
+ },
+ "m012": {
+  "file": "sqlglot/parsers/dax.py",
+  "line": 36,
+  "old": "            return query.where(where, copy=False) if query else None",
+  "new": "            return query.where(where, copy=False) if not query else None"
+ },
+ "m013": {
+  "file": "sqlglot/optimizer/pushdown_predicates.py",
+  "line": 77,
+  "old": "                    if isinstance(parent, exp.Join):",
+  "new": "                    if not isinstance(parent, exp.Join):"
+ },
+ "m014": {
+  "file": "sqlglot/generators/exasol.py",
+  "line": 142,
+  "old": "    if from_right:",
+  "new": "    if not from_right:"
+ },
+ "m015": {
+  "file": "sqlglot/parser.py",
+  "line": 410,
+  "old": "            this=seq_get(args, 0), nulls_excluded=dialect.ARRAY_AGG_INCLUDES_NULLS is None or None",
+  "new": "            this=seq_get(args, 0), nulls_excluded=dialect.ARRAY_AGG_INCLUDES_NULLS is not None or None"
+ },
+ "m016": {
+  "file": "sqlglot/generators/snowflake.py",
+  "line": 384,
+  "old": "    SUPPORTS_TABLE_COPY = False",
+  "new": "    SUPPORTS_TABLE_COPY = True"
+ },
+ "m017": {
+  "file": "sqlglot/generator.py",
+  "line": 2214,
+  "old": "        partition_keyword = \"SUBPARTITION\" if expression.args.get(\"subpartition\") else \"PARTITION\"",
+  "new": "        partition_keyword = \"SUBPARTITION\" if not expression.args.get(\"subpartition\") else \"PARTITION\""
+ },
+ "m018": {
+  "file": "sqlglot/generators/dremio.py",
+  "line": 81,
+  "old": "            this = \"SNAPSHOT\" if expression.name == \"VERSION\" else expression.name",
+  "new": "            this = \"SNAPSHOT\" if expression.name != \"VERSION\" else expression.name"
+ },
+ "m019": {
+  "file": "sqlglot/expressions/dml.py",
+  "line": 279,
+  "old": "    arg_types = {\"expressions\": True, \"into\": False}",
+  "new": "    arg_types = {\"expressions\": False, \"into\": False}"
+ },
+ "m020": {
+  "file": "sqlglot/tokenizer_core.py",
+  "line": 729,
+  "old": "                elif self._char in identifiers:",
+  "new": "                elif self._char not in identifiers:"
+ },
+ "m021": {
+  "file": "sqlglot/dialects/dialect.py",
+  "line": 222,
+  "old": "        if isinstance(other, Dialect):",
+  "new": "        if not isinstance(other, Dialect):"
+ },
+ "m022": {
+  "file": "sqlglot/expressions/array.py",
+  "line": 263,
+  "old": "    is_var_len_args = True",
+  "new": "    is_var_len_args = False"
+ },
+ "m023": {
+  "file": "sqlglot/transforms.py",
+  "line": 882,
+  "old": "        and prop.this",
+  "new": "        or prop.this"
+ },
+ "m024": {
+  "file": "sqlglot/tokenizer_core.py",
+  "line": 793,
+  "old": "        if self._comments and token_type == TokenType.SEMICOLON and self.tokens:",
+  "new": "        if not self._comments and token_type == TokenType.SEMICOLON and self.tokens:"
+ },
+ "m025": {
+  "file": "sqlglot/generator.py",
+  "line": 1745,
+  "old": "        if \"\\\\\" in self.dialect.tokenizer_class.STRING_ESCAPES:",
+  "new": "        if not \"\\\\\" in self.dialect.tokenizer_class.STRING_ESCAPES:"
+ },
+ "m026": {
+  "file": "sqlglot/generator.py",
+  "line": 4013,
+  "old": "        if not self.SUPPORTS_SINGLE_ARG_CONCAT and len(expressions) == 1:",
+  "new": "        if not self.SUPPORTS_SINGLE_ARG_CONCAT and len(expressions) != 1:"
+ },
+ "m027": {
+  "file": "sqlglot/generator.py",
+  "line": 2786,
+  "old": "        direction = \"UNPIVOT\" if expression.unpivot else \"PIVOT\"",
+  "new": "        direction = \"UNPIVOT\" if not expression.unpivot else \"PIVOT\""
+ },
+ "m028": {
+  "file": "sqlglot/generator.py",
+  "line": 4040,
+  "old": "        this = f\" {this}\" if this else \"\"",
+  "new": "        this = f\" {this}\" if not this else \"\""
+ },
+ "m029": {
+  "file": "sqlglot/expressions/array.py",
+  "line": 254,
+  "old": "    arg_types = {\"this\": True, \"expression\": True}",
+  "new": "    arg_types = {\"this\": False, \"expression\": True}"
+ },
+ "m030": {
+  "file": "sqlglot/optimizer/unnest_subqueries.py",
+  "line": 543,
+  "old": "            parent_predicate, exp.paren(exp.and_(parent_predicate.copy(), right, copy=False))",
+  "new": "            parent_predicate, exp.paren(exp.and_(parent_predicate.copy(), right, copy=True))"
+ },
+ "m031": {
+  "file": "sqlglot/dialects/dialect.py",
+  "line": 2115,
+  "old": "    if not remove_chars:",
+  "new": "    if not not remove_chars:"
+ },
+ "m032": {
+  "file": "sqlglot/diff.py",
+  "line": 473,
+  "old": "                    else lcs_result[i][j - 1]",
+  "new": "                    else lcs_result[i][j + 1]"
+ },
+ "m033": {
+  "file": "sqlglot/parsers/mysql.py",
+  "line": 453,
+  "old": "        if rename:",
+  "new": "        if not rename:"
+ },
+ "m034": {
+  "file": "sqlglot/optimizer/qualify_columns.py",
+  "line": 160,
+  "old": "                if line and col:",
+  "new": "                if line or col:"
+ },
+ "m035": {
+  "file": "sqlglot/parsers/hive.py",
+  "line": 168,
+  "old": "                if not any(digits):",
+  "new": "                if not not any(digits):"
+ },
+ "m036": {
+  "file": "sqlglot/optimizer/annotate_types.py",
+  "line": 1070,
+  "old": "            if len(selects) == 1:",
+  "new": "            if not len(selects) == 1:"
+ },
+ "m037": {
+  "file": "sqlglot/generators/fabric.py",
+  "line": 119,
+  "old": "            precision = precision_param.this.to_py() if precision_param else 6",
+  "new": "            precision = precision_param.this.to_py() if not precision_param else 6"
+ },
+ "m038": {
+  "file": "sqlglot/generator.py",
+  "line": 1981,
+  "old": "        on = f\" ON ({on})\" if on else \"\"",
+  "new": "        on = f\" ON ({on})\" if not on else \"\""
+ },
+ "m039": {
+  "file": "sqlglot/parser.py",
+  "line": 8606,
+  "old": "        elif not to:",
+  "new": "        elif to:"
+ }
+}

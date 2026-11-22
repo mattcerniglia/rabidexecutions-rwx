@@ -1,0 +1,12 @@
+diff --git a/sqlglot/tokenizer_core.py b/sqlglot/tokenizer_core.py
+--- a/sqlglot/tokenizer_core.py
++++ b/sqlglot/tokenizer_core.py
+@@ -726,7 +726,7 @@
+             if not self._char.isspace():
+                 if self._char in digit_chars:
+                     self._scan_number()
+-                elif self._char in identifiers:
++                elif self._char not in identifiers:
+                     self._scan_identifier(identifiers[self._char])
+                 else:
+                     self._scan_keywords()

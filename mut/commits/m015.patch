@@ -1,0 +1,12 @@
+diff --git a/sqlglot/parser.py b/sqlglot/parser.py
+--- a/sqlglot/parser.py
++++ b/sqlglot/parser.py
+@@ -407,7 +407,7 @@
+             this=seq_get(args, 0), nulls_excluded=dialect.ARRAY_AGG_INCLUDES_NULLS is None or None
+         ),
+         "ARRAY_AGG": lambda args, dialect: exp.ArrayAgg(
+-            this=seq_get(args, 0), nulls_excluded=dialect.ARRAY_AGG_INCLUDES_NULLS is None or None
++            this=seq_get(args, 0), nulls_excluded=dialect.ARRAY_AGG_INCLUDES_NULLS is not None or None
+         ),
+         "ARRAY_APPEND": build_array_append,
+         "ARRAY_CAT": build_array_concat,

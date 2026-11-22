@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generator.py b/sqlglot/generator.py
+--- a/sqlglot/generator.py
++++ b/sqlglot/generator.py
+@@ -2211,7 +2211,7 @@
+         return f"{prefix}{string}"
+ 
+     def partition_sql(self, expression: exp.Partition) -> str:
+-        partition_keyword = "SUBPARTITION" if expression.args.get("subpartition") else "PARTITION"
++        partition_keyword = "SUBPARTITION" if not expression.args.get("subpartition") else "PARTITION"
+         return f"{partition_keyword}({self.expressions(expression, flat=True)})"
+ 
+     def properties_sql(self, expression: exp.Properties) -> str:

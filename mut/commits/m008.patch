@@ -1,0 +1,12 @@
+diff --git a/sqlglot/optimizer/pushdown_projections.py b/sqlglot/optimizer/pushdown_projections.py
+--- a/sqlglot/optimizer/pushdown_projections.py
++++ b/sqlglot/optimizer/pushdown_projections.py
+@@ -326,7 +326,7 @@
+ 
+         for name, reference in scope.references:
+             source = scope.sources.get(name)
+-            if not isinstance(source, Scope):
++            if not not isinstance(source, Scope):
+                 continue
+ 
+             # Recursive references can use a second Scope object for the same expression.

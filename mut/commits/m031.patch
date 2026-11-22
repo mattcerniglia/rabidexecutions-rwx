@@ -1,0 +1,12 @@
+diff --git a/sqlglot/dialects/dialect.py b/sqlglot/dialects/dialect.py
+--- a/sqlglot/dialects/dialect.py
++++ b/sqlglot/dialects/dialect.py
+@@ -2112,7 +2112,7 @@
+     remove_chars = self.sql(expression, "expression")
+ 
+     # Use TRIM/LTRIM/RTRIM syntax if the expression isn't database-specific
+-    if not remove_chars:
++    if not not remove_chars:
+         return self.trim_sql(expression)
+ 
+     target = self.sql(expression, "this")

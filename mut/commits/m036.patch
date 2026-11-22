@@ -1,0 +1,12 @@
+diff --git a/sqlglot/optimizer/annotate_types.py b/sqlglot/optimizer/annotate_types.py
+--- a/sqlglot/optimizer/annotate_types.py
++++ b/sqlglot/optimizer/annotate_types.py
+@@ -1067,7 +1067,7 @@
+                 self._set_type(expression, query.meta_get("query_type"))
+                 return expression
+             selects = query.selects
+-            if len(selects) == 1:
++            if not len(selects) == 1:
+                 self._set_type(expression, selects[0].type)
+                 return expression
+ 

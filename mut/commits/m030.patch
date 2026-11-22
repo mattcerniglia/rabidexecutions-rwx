@@ -1,0 +1,12 @@
+diff --git a/sqlglot/optimizer/unnest_subqueries.py b/sqlglot/optimizer/unnest_subqueries.py
+--- a/sqlglot/optimizer/unnest_subqueries.py
++++ b/sqlglot/optimizer/unnest_subqueries.py
+@@ -540,7 +540,7 @@
+             ),
+         )
+         parent_predicate = _replace(
+-            parent_predicate, exp.paren(exp.and_(parent_predicate.copy(), right, copy=False))
++            parent_predicate, exp.paren(exp.and_(parent_predicate.copy(), right, copy=True))
+         )
+ 
+     group = select.args.get("group")

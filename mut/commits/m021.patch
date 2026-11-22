@@ -1,0 +1,12 @@
+diff --git a/sqlglot/dialects/dialect.py b/sqlglot/dialects/dialect.py
+--- a/sqlglot/dialects/dialect.py
++++ b/sqlglot/dialects/dialect.py
+@@ -219,7 +219,7 @@
+             return True
+         if isinstance(other, str):
+             return cls is cls.get(other)
+-        if isinstance(other, Dialect):
++        if not isinstance(other, Dialect):
+             return cls is type(other)
+ 
+         return False

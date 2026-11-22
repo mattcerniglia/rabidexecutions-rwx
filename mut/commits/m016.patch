@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generators/snowflake.py b/sqlglot/generators/snowflake.py
+--- a/sqlglot/generators/snowflake.py
++++ b/sqlglot/generators/snowflake.py
+@@ -381,7 +381,7 @@
+     JOIN_HINTS = False
+     TABLE_HINTS = False
+     QUERY_HINTS = False
+-    SUPPORTS_TABLE_COPY = False
++    SUPPORTS_TABLE_COPY = True
+     COLLATE_IS_FUNC = True
+     LIMIT_ONLY_LITERALS = True
+     JSON_KEY_VALUE_PAIR_SEP = ","

@@ -1,0 +1,12 @@
+diff --git a/sqlglot/transforms.py b/sqlglot/transforms.py
+--- a/sqlglot/transforms.py
++++ b/sqlglot/transforms.py
+@@ -879,7 +879,7 @@
+     prop = expression.find(exp.PartitionedByProperty)
+     if (
+         prop
+-        and prop.this
++        or prop.this
+         and isinstance(prop.this, exp.Schema)
+         and all(isinstance(e, exp.ColumnDef) and e.kind for e in prop.this.expressions)
+     ):

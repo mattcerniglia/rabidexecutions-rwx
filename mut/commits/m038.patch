@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generator.py b/sqlglot/generator.py
+--- a/sqlglot/generator.py
++++ b/sqlglot/generator.py
+@@ -1978,7 +1978,7 @@
+ 
+         by_name = " BY NAME" if expression.args.get("by_name") else ""
+         on = self.expressions(expression, key="on", flat=True)
+-        on = f" ON ({on})" if on else ""
++        on = f" ON ({on})" if not on else ""
+ 
+         return f"{side_kind}{op_name}{distinct_or_all}{by_name}{on}"
+ 

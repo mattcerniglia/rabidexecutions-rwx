@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generator.py b/sqlglot/generator.py
+--- a/sqlglot/generator.py
++++ b/sqlglot/generator.py
+@@ -4037,7 +4037,7 @@
+ 
+     def foreignkey_sql(self, expression: exp.ForeignKey) -> str:
+         this = self.sql(expression, "this")
+-        this = f" {this}" if this else ""
++        this = f" {this}" if not this else ""
+         expressions = self.expressions(expression, flat=True)
+         expressions = f" ({expressions})" if expressions else ""
+         reference = self.sql(expression, "reference")

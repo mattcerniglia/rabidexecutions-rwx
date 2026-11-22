@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generator.py b/sqlglot/generator.py
+--- a/sqlglot/generator.py
++++ b/sqlglot/generator.py
+@@ -2783,7 +2783,7 @@
+ 
+     def pivot_sql(self, expression: exp.Pivot) -> str:
+         expressions = self.expressions(expression, flat=True)
+-        direction = "UNPIVOT" if expression.unpivot else "PIVOT"
++        direction = "UNPIVOT" if not expression.unpivot else "PIVOT"
+ 
+         group = self.sql(expression, "group")
+ 

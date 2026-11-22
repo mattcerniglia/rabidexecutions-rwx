@@ -1,0 +1,12 @@
+diff --git a/sqlglot/parser.py b/sqlglot/parser.py
+--- a/sqlglot/parser.py
++++ b/sqlglot/parser.py
+@@ -9484,7 +9484,7 @@
+         exists_column = self._parse_exists(not_=True)
+         expression = self._parse_field_def()
+ 
+-        if not isinstance(expression, exp.ColumnDef):
++        if not not isinstance(expression, exp.ColumnDef):
+             self._retreat(start)
+             return None
+ 

@@ -1,0 +1,12 @@
+diff --git a/sqlglot/tokenizer_core.py b/sqlglot/tokenizer_core.py
+--- a/sqlglot/tokenizer_core.py
++++ b/sqlglot/tokenizer_core.py
+@@ -790,7 +790,7 @@
+     def _add(self, token_type: TokenType, text: str | None = None) -> None:
+         self._prev_token_line = self._line
+ 
+-        if self._comments and token_type == TokenType.SEMICOLON and self.tokens:
++        if not self._comments and token_type == TokenType.SEMICOLON and self.tokens:
+             self.tokens[-1].comments.extend(self._comments)
+             self._comments = []
+ 

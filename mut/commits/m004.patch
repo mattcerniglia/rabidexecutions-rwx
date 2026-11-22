@@ -1,0 +1,12 @@
+diff --git a/sqlglot/diff.py b/sqlglot/diff.py
+--- a/sqlglot/diff.py
++++ b/sqlglot/diff.py
+@@ -223,7 +223,7 @@
+             identical_nodes = source_node == target_node
+ 
+             if not isinstance(source_node, UPDATABLE_EXPRESSION_TYPES) or identical_nodes:
+-                if identical_nodes:
++                if not identical_nodes:
+                     source_parent = source_node.parent
+                     target_parent = target_node.parent
+ 

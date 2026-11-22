@@ -9,6 +9,7 @@ from pathlib import Path
 
 DATA = Path(os.environ.get("BR_DATA", "/data"))
 MAP = Path(__file__).with_name("map.json")
+SRC = Path(__file__).with_name("src")
 WORKER_COST = 2000
 HUNK = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
@@ -42,6 +43,101 @@ def parse_patch(text):
         elif line.startswith(" "):
             old += 1
     return files
+
+
+def split_hunks(text):
+    """-> {path: [(old_start, [hunk lines with their +/-/space prefix])]}"""
+    out, cur, hunk = {}, None, None
+    for line in text.split("\n"):
+        if line.startswith("diff --git"):
+            m = re.match(r"diff --git a/(.*) b/(.*)$", line)
+            cur = m.group(2) if m else None
+            hunk = None
+            if cur:
+                out.setdefault(cur, [])
+            continue
+        if line.startswith("--- ") or line.startswith("+++ "):
+            if hunk is None:
+                continue
+        m = HUNK.match(line)
+        if m and cur:
+            hunk = (int(m.group(1)), [])
+            out[cur].append(hunk)
+            continue
+        if hunk is not None and line[:1] in ("+", "-", " "):
+            hunk[1].append(line)
+    return out
+
+
+def apply_hunks(old_lines, hunks):
+    """Strict in-memory apply. Raises ValueError if anything doesn't match exactly."""
+    new, pos = [], 0
+    for start, lines in hunks:
+        start = start - 1 if any(x[0] != "+" for x in lines) else start
+        if start < pos or start > len(old_lines):
+            raise ValueError("hunk out of order")
+        new.extend(old_lines[pos:start])
+        pos = start
+        for x in lines:
+            tag, body = x[0], x[1:]
+            if tag in (" ", "-"):
+                if pos >= len(old_lines) or old_lines[pos] != body:
+                    raise ValueError("context mismatch")
+                if tag == " ":
+                    new.append(body)
+                pos += 1
+            else:
+                new.append(body)
+    new.extend(old_lines[pos:])
+    return new
+
+
+def _strip_docstrings(tree):
+    import ast
+
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            b = node.body
+            if b and isinstance(b[0], ast.Expr) and isinstance(b[0].value, ast.Constant) and isinstance(b[0].value.value, str):
+                node.body = b[1:] or [ast.Pass()]
+    return tree
+
+
+def _same_code(a, b):
+    import types
+
+    for attr in ("co_code", "co_names", "co_varnames", "co_freevars", "co_cellvars", "co_argcount",
+                 "co_posonlyargcount", "co_kwonlyargcount", "co_flags", "co_name", "co_qualname",
+                 "co_exceptiontable"):
+        if getattr(a, attr) != getattr(b, attr):
+            return False
+    if len(a.co_consts) != len(b.co_consts):
+        return False
+    cls_body = "__firstlineno__" in a.co_names and "__firstlineno__" in b.co_names
+    for x, y in zip(a.co_consts, b.co_consts):
+        if (
+            cls_body
+            and type(x) is int
+            and type(y) is int
+            and x == a.co_firstlineno
+            and y == b.co_firstlineno
+        ):
+            continue  # py3.13 stores the class's first line number as a constant
+        if isinstance(x, types.CodeType) or isinstance(y, types.CodeType):
+            if not (isinstance(x, types.CodeType) and isinstance(y, types.CodeType) and _same_code(x, y)):
+                return False
+        elif type(x) is not type(y) or repr(x) != repr(y):
+            return False
+    return True
+
+
+def same_bytecode(old_src, new_src):
+    import ast
+
+    def comp(src):
+        return compile(_strip_docstrings(ast.parse(src)), "<m>", "exec", dont_inherit=True)
+
+    return _same_code(comp(old_src), comp(new_src))
 
 
 class Mapper:
@@ -130,11 +226,22 @@ class Mapper:
             out.update(self.func_union(f, max(L - 1, 1)))
         return out
 
-    def select(self, files):
+    def equivalent(self, path, hunks):
+        """True only when the patched file compiles to identical bytecode (docstrings ignored)."""
+        try:
+            old = (SRC / path).read_text()
+            new = "\n".join(apply_hunks(old.split("\n"), hunks))
+            return same_bytecode(old, new)
+        except Exception:
+            return False
+
+    def select(self, files, hunks=None):
         """-> set of test numbers, or None meaning 'run everything'."""
         out = set()
         for path, (removed, added) in files.items():
             if path in self.m["lines"]:
+                if hunks and path in hunks and self.equivalent(path, hunks[path]):
+                    continue
                 out.update(self.select_py(path, removed, added))
             elif path.startswith("tests/fixtures/"):
                 out.update(self.fixtures.get(path, ()))
@@ -172,7 +279,8 @@ def main():
     mp = Mapper(tests)
     for patch in sorted((DATA / "commits").glob("*.patch")):
         try:
-            sel = mp.select(parse_patch(patch.read_text(errors="replace")))
+            text = patch.read_text(errors="replace")
+            sel = mp.select(parse_patch(text), split_hunks(text))
             chosen = mp.all if sel is None else sorted(sel)
         except Exception as e:  # never crash: fall back to everything
             print(f"{patch.stem}: {e!r}", file=sys.stderr)

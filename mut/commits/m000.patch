@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generators/snowflake.py b/sqlglot/generators/snowflake.py
+--- a/sqlglot/generators/snowflake.py
++++ b/sqlglot/generators/snowflake.py
+@@ -629,7 +629,7 @@
+         this = self.func("IDENTIFIER", expression.this)
+         if "expressions" in expression.args:
+             # `IDENTIFIER(...)` invoked as a function, e.g. `IDENTIFIER('my_func')(1, 2)`
+-            return self.func(this, *expression.expressions, normalize=False)
++            return self.func(this, *expression.expressions, normalize=True)
+         return this
+ 
+     SUPPORTED_JSON_PATH_PARTS = {

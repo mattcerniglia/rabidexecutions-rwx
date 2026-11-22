@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generator.py b/sqlglot/generator.py
+--- a/sqlglot/generator.py
++++ b/sqlglot/generator.py
+@@ -4010,7 +4010,7 @@
+         expressions = self.convert_concat_args(expression)
+ 
+         # Some dialects don't allow a single-argument CONCAT call
+-        if not self.SUPPORTS_SINGLE_ARG_CONCAT and len(expressions) == 1:
++        if not self.SUPPORTS_SINGLE_ARG_CONCAT and len(expressions) != 1:
+             return self.sql(expressions[0])
+ 
+         return self.func("CONCAT", *expressions)

@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generator.py b/sqlglot/generator.py
+--- a/sqlglot/generator.py
++++ b/sqlglot/generator.py
+@@ -1742,7 +1742,7 @@
+ 
+             return delimited_byte_string
+ 
+-        if "\\" in self.dialect.tokenizer_class.STRING_ESCAPES:
++        if not "\\" in self.dialect.tokenizer_class.STRING_ESCAPES:
+             return self.sql(exp.Literal.string(this))
+ 
+         self.unsupported(f"Byte strings are not supported for {self.dialect.__class__.__name__}")

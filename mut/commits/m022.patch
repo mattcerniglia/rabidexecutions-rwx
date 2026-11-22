@@ -1,0 +1,12 @@
+diff --git a/sqlglot/expressions/array.py b/sqlglot/expressions/array.py
+--- a/sqlglot/expressions/array.py
++++ b/sqlglot/expressions/array.py
+@@ -260,7 +260,7 @@
+ 
+ class Stack(Expression, Func, UDTF):
+     arg_types = {"this": True, "expressions": True}
+-    is_var_len_args = True
++    is_var_len_args = False
+ 
+ 
+ @trait

@@ -1,0 +1,12 @@
+diff --git a/sqlglot/parser.py b/sqlglot/parser.py
+--- a/sqlglot/parser.py
++++ b/sqlglot/parser.py
+@@ -8603,7 +8603,7 @@
+                 if isinstance(fmt, exp.AtTimeZone) and isinstance(this, exp.StrToTime):
+                     this.set("zone", fmt.args["zone"])
+                 return this
+-        elif not to:
++        elif to:
+             self.raise_error("Expected TYPE after CAST")
+         elif isinstance(to, exp.Identifier):
+             to = exp.DataType.from_str(to.name, dialect=self.dialect, udt=True)
