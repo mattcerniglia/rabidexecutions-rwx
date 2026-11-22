@@ -1,0 +1,12 @@
+diff --git a/sqlglot/dialects/duckdb.py b/sqlglot/dialects/duckdb.py
+--- a/sqlglot/dialects/duckdb.py
++++ b/sqlglot/dialects/duckdb.py
+@@ -41,7 +41,7 @@
+ 
+     # https://duckdb.org/docs/sql/introduction.html#creating-a-new-table
+     NORMALIZATION_STRATEGY = NormalizationStrategy.CASE_INSENSITIVE
+-    ASCII_ONLY_NORMALIZATION = True
++    ASCII_ONLY_NORMALIZATION = False
+ 
+     DATE_PART_MAPPING = {
+         **Dialect.DATE_PART_MAPPING,

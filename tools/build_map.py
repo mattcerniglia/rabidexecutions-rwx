@@ -16,6 +16,11 @@ for f in d.measured_files():
         for c in ctxs:
             if c == "":
                 imp.setdefault(rel, []).append(ln)
+            elif c.startswith("SCOPE::"):
+                pre = c[7:]
+                for tid, tn in num.items():
+                    if pre == "" or tid.startswith(pre + "::") or tid == pre:
+                        ts.add(tn)
             elif c in num:
                 ts.add(num[c])
             else:

@@ -11,6 +11,7 @@ DATA = Path(os.environ.get("BR_DATA", "/data"))
 MAP = Path(__file__).with_name("map.json")
 SRC = Path(__file__).with_name("src")
 INF = Path(__file__).with_name("infect_map.json")
+ATTR = Path(__file__).with_name("attr_map.json")
 ALTS = {
     "==": ["!=", "is"], "!=": ["==", "is not"], "<": ["<=", ">", ">="], "<=": ["<", ">", ">="],
     ">": [">=", "<", "<="], ">=": [">", "<", "<="], "is": ["is not", "=="], "is not": ["is", "!="],
@@ -62,6 +63,12 @@ class _LazySets:
         if got is None:
             got = self.done[i] = [self.num[j] for j in self.raw[i] if self.num[j] is not None]
         return got
+
+
+STRUCTURAL = re.compile(
+    r"^(deleted file mode|rename from|rename to|copy from|copy to|old mode|new mode|Binary files|GIT binary patch)",
+    re.M,
+)
 
 
 def split_hunks(text):
@@ -247,6 +254,14 @@ class Mapper:
             self.cache[key] = out
         return self.cache[key]
 
+    def in_def_header(self, f, line):
+        """True when `line` is a def's header (decorators, signature) rather than its body."""
+        best = None
+        for a, b, cls, fb in self.m["spans"].get(f, ()):
+            if a <= line <= b and (best is None or b - a < best[1] - best[0]):
+                best = (a, b, cls, fb)
+        return best is not None and best[2] == 0 and line < best[3]
+
     def is_class_level(self, f, line):
         """True when `line` is module level or directly in a class body (not inside a def)."""
         best = None
@@ -255,21 +270,62 @@ class Mapper:
                 best = (a, b, cls)
         return best is None or best[2] == 1
 
+    def attr(self):
+        if getattr(self, "_attr", None) is None:
+            try:
+                d = json.loads(ATTR.read_text())
+                d["importref"] = set(d["importref"])
+                self._attr = d
+            except Exception:
+                self._attr = {"children": {}, "attrs": {}, "importref": set()}
+        return self._attr
+
     def dialect_union(self, f):
         """Import-time attributes of a dialect file reach tests only through data flow:
-        take every test that runs any line of that dialect's dialect/parser/generator/typing files."""
+        take every test that runs any line of that dialect's (or a sub-dialect's)
+        dialect/parser/generator/typing files."""
         m = re.match(r"sqlglot/(?:dialects|parsers|generators|typing)/([^/]+)\.py$", f)
         if not m or m.group(1) in ("dialect", "__init__"):
             return ()
-        key = ("dialect", m.group(1))
+        name = m.group(1)
+        key = ("dialect", name)
         if key not in self.cache:
             out = set()
-            for d in ("dialects", "parsers", "generators", "typing"):
-                g = f"sqlglot/{d}/{m.group(1)}.py"
-                for i in self.m["lines"].get(g, {}).values():
-                    out.update(self.sets[i])
+            for n in [name] + list(self.attr()["children"].get(name, ())):
+                for d in ("dialects", "parsers", "generators", "typing"):
+                    g = f"sqlglot/{d}/{n}.py"
+                    for i in self.m["lines"].get(g, {}).values():
+                        out.update(self.sets[i])
             self.cache[key] = out
         return self.cache[key]
+
+    def attr_tests(self, path, hunks):
+        """One-line class attribute edit (NAME = value) in a dialect file: only tests that run a
+        line referencing NAME AND use that dialect (or a sub-dialect). None -> use wide rules."""
+        if not re.match(r"sqlglot/(dialects|parsers|generators|typing)/[^/]+\.py$", path):
+            return None
+        minus, plus = [], []
+        for start, lines in hunks:
+            old = start
+            for x in lines:
+                if x[0] == "-":
+                    minus.append((old, x[1:])); old += 1
+                elif x[0] == "+":
+                    plus.append(x[1:])
+                else:
+                    old += 1
+        if len(minus) != 1 or len(plus) != 1:
+            return None
+        pat = re.compile(r"^\s{4}([A-Z_][A-Z0-9_]*)\s*(?::[^=]+)?=\s")
+        a, b = pat.match(minus[0][1]), pat.match(plus[0])
+        if not a or not b or a.group(1) != b.group(1):
+            return None
+        name = a.group(1)
+        at = self.attr()
+        if name not in at["attrs"] or name in at["importref"] or not self.is_class_level(path, minus[0][0]):
+            return None
+        reach = {self.num[i] for i in at["attrs"][name] if self.num[i] is not None}
+        return reach & set(self.dialect_union(path))
 
     def select_py(self, f, removed, added):
         out = set()
@@ -282,8 +338,13 @@ class Mapper:
             elif n in imp or L in imp:
                 out.update(self.func_union(f, n))  # import-only line: widen
             if self.is_class_level(f, n):
+                # module/class-body code runs at import: coverage credits whichever test imported
+                # the module first, so widen to everything that uses the class / file
+                out.update(self.func_union(f, n))
                 out.update(self.dialect_union(f))
                 out.update(self.lazy)
+            elif self.in_def_header(f, n):
+                out.update(self.func_union(f, n))  # default args / decorators / annotations
         for L in added:
             if self.is_class_level(f, max(L - 1, 1)):
                 out.update(self.lazy)
@@ -313,7 +374,18 @@ class Mapper:
             old = (SRC / path).read_text()
             new = "\n".join(apply_hunks(old.split("\n"), hunks))
             out = []
-            _ast_diffs(ast.parse(old), ast.parse(new), out)
+            tree_old = ast.parse(old)
+            try:
+                tree_new = ast.parse(new)
+            except SyntaxError:
+                # a broken module breaks every test that imports it
+                if self.m["import"].get(path):
+                    return set(self.all)
+                allt = set()
+                for i in self.m["lines"].get(path, {}).values():
+                    allt.update(self.sets[i])
+                return allt | set(self.lazy)
+            _ast_diffs(tree_old, tree_new, out)
         except Exception:
             return None
         if not out:
@@ -323,6 +395,8 @@ class Mapper:
                 return set() if same_bytecode(old, new) else None  # docstring-only edits
             except Exception:
                 return None
+        if len(out) == 1 and out[0][0] == "x":
+            return self.attr_tests(path, hunks)
         if len(out) != 1 or out[0][0] != "cmp":
             return None
         return self.infect_tests(path, out[0][1], out[0][2])
@@ -346,6 +420,17 @@ class Mapper:
             return tests
         except Exception:
             return None
+
+    def structural_matters(self, text):
+        """Deleted / renamed / re-moded files: harmless only for docs-like paths."""
+        for m in re.finditer(r"^diff --git a/(.*) b/(.*)$", text, re.M):
+            for path in (m.group(1), m.group(2)):
+                if path.endswith((".md", ".rst", ".txt", ".png", ".jpg", ".svg")) or path.startswith(
+                    ("posts/", "benchmarks/", "pdoc/", "sqlglot-integration-tests/")
+                ):
+                    continue
+                return True
+        return False
 
     def select(self, files, hunks=None):
         """-> set of test numbers, or None meaning 'run everything'."""
@@ -396,6 +481,8 @@ def main():
         try:
             text = patch.read_text(errors="replace")
             sel = mp.select(parse_patch(text), split_hunks(text))
+            if sel is not None and STRUCTURAL.search(text) and mp.structural_matters(text):
+                sel = None
             chosen = mp.all if sel is None else sorted(sel)
         except Exception as e:  # never crash: fall back to everything
             print(f"{patch.stem}: {e!r}", file=sys.stderr)

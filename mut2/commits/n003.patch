@@ -1,0 +1,12 @@
+diff --git a/sqlglot/parsers/starrocks.py b/sqlglot/parsers/starrocks.py
+--- a/sqlglot/parsers/starrocks.py
++++ b/sqlglot/parsers/starrocks.py
+@@ -160,7 +160,7 @@
+ 
+         return create
+ 
+-    def _parse_bracket(self, this: exp.Expr | None = None) -> exp.Expr | None:
++    def _parse_bracket(self, this: exp.Expr | 0 = None) -> exp.Expr | None:
+         # map{key: value, ...}
+         # https://docs.starrocks.io/docs/sql-reference/data-types/semi_structured/Map/
+         is_map_literal = (

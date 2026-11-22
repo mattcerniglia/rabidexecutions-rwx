@@ -1,0 +1,98 @@
+{
+ "n000": {
+  "file": "sqlglot/dialects/postgres.py",
+  "line": 30,
+  "old": "    TABLESAMPLE_SIZE_IS_PERCENT = True",
+  "new": "    TABLESAMPLE_SIZE_IS_PERCENT = False"
+ },
+ "n001": {
+  "file": "sqlglot/optimizer/eliminate_ctes.py",
+  "line": 13,
+  "old": "def eliminate_ctes(expression: E, journal: Journal | None = None) -> E:",
+  "new": "def eliminate_ctes(expression: E, journal: Journal | 0 = None) -> E:"
+ },
+ "n002": {
+  "file": "sqlglot/generators/redshift.py",
+  "line": 31,
+  "old": "    COPY_PARAMS_ARE_WRAPPED = False",
+  "new": "    COPY_PARAMS_ARE_WRAPPED = True"
+ },
+ "n003": {
+  "file": "sqlglot/parsers/starrocks.py",
+  "line": 163,
+  "old": "    def _parse_bracket(self, this: exp.Expr | None = None) -> exp.Expr | None:",
+  "new": "    def _parse_bracket(self, this: exp.Expr | 0 = None) -> exp.Expr | None:"
+ },
+ "n004": {
+  "file": "sqlglot/generators/presto.py",
+  "line": 270,
+  "old": "    SUPPORTS_MULTI_ARG_CHR = False",
+  "new": "    SUPPORTS_MULTI_ARG_CHR = True"
+ },
+ "n005": {
+  "file": "sqlglot/dialects/duckdb.py",
+  "line": 44,
+  "old": "    ASCII_ONLY_NORMALIZATION = True",
+  "new": "    ASCII_ONLY_NORMALIZATION = False"
+ },
+ "n006": {
+  "file": "sqlglot/dialects/hive.py",
+  "line": 109,
+  "old": "        NUMERIC_ESCAPES = {\"u\": (16, 4, 4, 0xFFFF), \"0\": (8, 3, 3, 0x7F)}",
+  "new": "        NUMERIC_ESCAPES = {\"u\": (16, 4, 4, 0xFFFF), \"0\": (8, 3, 4, 0x7F)}"
+ },
+ "n007": {
+  "file": "sqlglot/generators/materialize.py",
+  "line": 18,
+  "old": "    CAST_TO_INT_ROUNDS = True",
+  "new": "    CAST_TO_INT_ROUNDS = False"
+ },
+ "n008": {
+  "file": "sqlglot/dialects/bigquery.py",
+  "line": 39,
+  "old": "    EXCLUDES_PSEUDOCOLUMNS_FROM_STAR = True",
+  "new": "    EXCLUDES_PSEUDOCOLUMNS_FROM_STAR = False"
+ },
+ "n009": {
+  "file": "sqlglot/dialects/athena.py",
+  "line": 71,
+  "old": "        def __init__(self, dialect: DialectType = None) -> None:",
+  "new": "        def __init__(self, dialect: DialectType = 0) -> None:"
+ },
+ "n010": {
+  "file": "sqlglot/dialects/redshift.py",
+  "line": 24,
+  "old": "    REGEXP_EXTRACT_POSITION_OVERFLOW_RETURNS_NULL = False",
+  "new": "    REGEXP_EXTRACT_POSITION_OVERFLOW_RETURNS_NULL = True"
+ },
+ "n011": {
+  "file": "sqlglot/parsers/oracle.py",
+  "line": 40,
+  "old": "    VALUES_FOLLOWED_BY_PAREN = False",
+  "new": "    VALUES_FOLLOWED_BY_PAREN = True"
+ },
+ "n012": {
+  "file": "sqlglot/optimizer/canonicalize.py",
+  "line": 12,
+  "old": "def canonicalize(expression: exp.Expr, dialect: DialectType = None) -> exp.Expr:",
+  "new": "def canonicalize(expression: exp.Expr, dialect: DialectType = 0) -> exp.Expr:"
+ },
+ "n013": {
+  "file": "sqlglot/generators/drill.py",
+  "line": 33,
+  "old": "    CAST_TO_INT_ROUNDS = True",
+  "new": "    CAST_TO_INT_ROUNDS = False"
+ },
+ "n014": {
+  "file": "sqlglot/dialects/starrocks.py",
+  "line": 27,
+  "old": "        DASH_COMMENT_REQUIRES_BOUNDARY = False",
+  "new": "        DASH_COMMENT_REQUIRES_BOUNDARY = True"
+ },
+ "n015": {
+  "file": "sqlglot/parsers/tableau.py",
+  "line": 16,
+  "old": "    NO_PAREN_IF_COMMANDS = False",
+  "new": "    NO_PAREN_IF_COMMANDS = True"
+ }
+}

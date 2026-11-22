@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generators/presto.py b/sqlglot/generators/presto.py
+--- a/sqlglot/generators/presto.py
++++ b/sqlglot/generators/presto.py
+@@ -267,7 +267,7 @@
+ class PrestoGenerator(generator.Generator):
+     SELECT_KINDS = ()
+     SUPPORTS_DECODE_CASE = False
+-    SUPPORTS_MULTI_ARG_CHR = False
++    SUPPORTS_MULTI_ARG_CHR = True
+     SUPPORTS_TEMPORAL_PRECISION = False
+     # https://github.com/prestodb/presto/issues/8200
+     SUPPORTS_LEFT_JOIN_UNNEST = False

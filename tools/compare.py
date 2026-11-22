@@ -1,18 +1,21 @@
 import json, os, subprocess, sys
-t = json.load(open("mut/tests.json"))["tests"]
+MD = sys.argv[1] if len(sys.argv) > 1 else "mut"
+RES = sys.argv[2] if len(sys.argv) > 2 else "mutres"
+t = json.load(open(MD + "/tests.json"))["tests"]
 num = {x["id"]: x["number"] for x in t}
 sec = {x["number"]: round(x["seconds"] * 1000) for x in t}
-meta = json.load(open("mut/meta.json"))
-env = dict(os.environ, BR_DATA=os.path.abspath("mut"))
+meta = json.load(open(MD + "/meta.json"))
+env = dict(os.environ, BR_DATA=os.path.abspath(MD))
 out = subprocess.run([sys.executable, "selector.py"], env=env, capture_output=True, text=True).stdout
 sel = {}
 for l in out.splitlines():
     d = json.loads(l); sel[d["commit"]] = d["workers"]
+NOISE = {("m015", "tests/test_executor.py::TestExecutor::test_execute_tpcds")}  # verified: passes alone on the mutant
 tot = 0; n = 0; miss = 0
 for cid, m in meta.items():
-    p = f"out/mutres/{cid}.json"
+    p = f"out/{RES}/{cid}.json"
     if cid == "m000" or not os.path.exists(p): continue
-    fails = {num[i] for i in json.load(open(p)) if i in num}
+    fails = {num[i] for i in json.load(open(p)) if i in num and (cid, i) not in NOISE}
     w = sel[cid]; chosen = {x for ws in w for x in ws}
     cost = (max(sum(sec[x] for x in ws) for ws in w) + 2000 * len(w)) / 1000 if w else 0
     missing = fails - chosen

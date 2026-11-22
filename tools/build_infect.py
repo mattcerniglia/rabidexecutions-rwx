@@ -12,12 +12,18 @@ def sid(ts):
         sidx[k] = len(sets); sets.append(list(k))
     return sidx[k]
 site = {}   # site id -> {alt: set of test idx}
+def expand(t):
+    if t in idx: return [idx[t]]
+    if t.startswith("SCOPE::"):
+        pre = t[7:]
+        return [i for tid, i in idx.items() if pre == "" or tid.startswith(pre + "::") or tid == pre]
+    return []
 for t, per in inf["tests"].items():
-    if t not in idx: continue
+    members = expand(t)
     for s, alts in per.items():
         d = site.setdefault(int(s), {})
         for a in alts:
-            d.setdefault(a, set()).add(idx[t])
+            d.setdefault(a, set()).update(members)
 sites = {}
 for s, d in site.items():
     f, line, col, op = inf["sites"][s]

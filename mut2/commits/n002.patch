@@ -1,0 +1,12 @@
+diff --git a/sqlglot/generators/redshift.py b/sqlglot/generators/redshift.py
+--- a/sqlglot/generators/redshift.py
++++ b/sqlglot/generators/redshift.py
+@@ -28,7 +28,7 @@
+     LAST_DAY_SUPPORTS_DATE_PART = False
+     CAN_IMPLEMENT_ARRAY_ANY = False
+     MULTI_ARG_DISTINCT = True
+-    COPY_PARAMS_ARE_WRAPPED = False
++    COPY_PARAMS_ARE_WRAPPED = True
+     HEX_FUNC = "TO_HEX"
+     PARSE_JSON_NAME: str | None = "JSON_PARSE"
+     ARRAY_CONCAT_IS_VAR_LEN = False

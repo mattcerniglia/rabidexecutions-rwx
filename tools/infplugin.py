@@ -133,6 +133,25 @@ def pytest_runtest_protocol(item, nextitem):
         _cur[0] = ""
 
 
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_fixture_setup(fixturedef, request):
+    """Code run by a class/module/session-scoped fixture (e.g. setUpClass) serves every test
+    in that scope, not just the test that happened to trigger it."""
+    if fixturedef.scope in ("class", "module", "package", "session"):
+        prev = _cur[0]
+        _cur[0] = "SCOPE::" + ("" if fixturedef.scope == "session" else request.node.nodeid)
+        pass
+        try:
+            yield
+        finally:
+            _cur[0] = prev
+            pass
+    else:
+        yield
+
+
 def pytest_unconfigure(config):
     out = {"sites": SITES, "import": sorted(_ctx_import), "tests": {}}
     for t, per in _masks.items():

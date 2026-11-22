@@ -1,0 +1,12 @@
+diff --git a/sqlglot/parsers/oracle.py b/sqlglot/parsers/oracle.py
+--- a/sqlglot/parsers/oracle.py
++++ b/sqlglot/parsers/oracle.py
+@@ -37,7 +37,7 @@
+     IS_PREDICATE_PRECEDENCE = IsPredicatePrecedence.LOW
+ 
+     WINDOW_BEFORE_PAREN_TOKENS = {TokenType.OVER, TokenType.KEEP}
+-    VALUES_FOLLOWED_BY_PAREN = False
++    VALUES_FOLLOWED_BY_PAREN = True
+     SUPPORTS_NTH_VALUE_FROM_MODIFIER = True
+     SUPPORTS_PARTITION_SELECTION = True
+ 

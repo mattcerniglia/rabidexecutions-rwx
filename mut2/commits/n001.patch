@@ -1,0 +1,12 @@
+diff --git a/sqlglot/optimizer/eliminate_ctes.py b/sqlglot/optimizer/eliminate_ctes.py
+--- a/sqlglot/optimizer/eliminate_ctes.py
++++ b/sqlglot/optimizer/eliminate_ctes.py
+@@ -10,7 +10,7 @@
+     from sqlglot._typing import E
+ 
+ 
+-def eliminate_ctes(expression: E, journal: Journal | None = None) -> E:
++def eliminate_ctes(expression: E, journal: Journal | 0 = None) -> E:
+     """
+     Remove unused CTEs from an expression.
+ 

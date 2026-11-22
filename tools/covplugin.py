@@ -68,6 +68,25 @@ def pytest_runtest_protocol(item, nextitem):
         _cov.switch_context("")
 
 
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_fixture_setup(fixturedef, request):
+    """Code run by a class/module/session-scoped fixture (e.g. setUpClass) serves every test
+    in that scope, not just the test that happened to trigger it."""
+    if fixturedef.scope in ("class", "module", "package", "session"):
+        prev = _cur[0]
+        _cur[0] = "SCOPE::" + ("" if fixturedef.scope == "session" else request.node.nodeid)
+        _cov.switch_context(_cur[0])
+        try:
+            yield
+        finally:
+            _cur[0] = prev
+            _cov.switch_context(prev)
+    else:
+        yield
+
+
 def pytest_unconfigure(config):
     _cov.stop()
     _cov.save()
